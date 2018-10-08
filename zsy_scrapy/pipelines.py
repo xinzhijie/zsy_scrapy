@@ -12,23 +12,6 @@ class ZsyScrapyPipeline(object):
         return item
 
 
-# # 同步连接数据库
-# class MysqlPipeline(object):
-#     # 初始化
-#     def __init__(self):
-#         self.conn = MySQLdb.connect("127.0.0.1", "root", "root", "zsy_news", charset="utf8", use_unicode=True)
-#         self.cursor = self.conn.cursor()
-#
-#     def process_item(self, item, spider):
-#         insert_sql = """
-#             insert into jrgz(id, title, content, source, create_time, visits, url, md5_url, state)
-#             values(REPLACE(UUID(),"-",""), %s, %s, null, null, null, null, null, null)
-#         """
-#         self.cursor.execute(insert_sql, (item["title"], item["content"]))
-#         # 提交事务
-#         self.conn.commit()
-
-
 # 异步连接数据库
 class MysqlTiPipeline(object):
     # 初始化
@@ -58,10 +41,18 @@ class MysqlTiPipeline(object):
 
     # 插入sql的具体方法
     def insert_sql(self, cursor, item):
-        insert_sql = """
-            insert into jrgz(id, title, content, source, create_time, visits, url, md5_url, state) 
-            values(REPLACE(UUID(),"-",""), %s, %s, null, null, null, %s, %s, null)        
+        if self.select_sql(cursor, item) == 0:
+            insert_sql = """
+                insert into jrgz(id, title, content, source, create_time, visits, url, md5_url, state)
+                values(REPLACE(UUID(),"-",""), %s, %s, null, null, null, %s, %s, null)
+            """
+            # 执行SQL语句
+            cursor.execute(insert_sql, ((str(item["title"])).encode("utf8"), (str(item["content"])).encode("utf8")
+                                        , (str(item["url"])).encode("utf8"), (str(item["md5_url"])).encode("utf8")))
+
+    def select_sql(self, cursor, item):
+        select_sql = """
+            select md5_url from jrgz WHERE md5_url=%s
         """
         # 执行SQL语句
-        cursor.execute(insert_sql, ((str(item["title"])).encode("utf8"), (str(item["content"])).encode("utf8")
-                                    , (str(item["url"])).encode("utf8"), (str(item["md5_url"])).encode("utf8")))
+        return cursor.execute(select_sql, ((str(item["md5_url"])).encode("utf8")))

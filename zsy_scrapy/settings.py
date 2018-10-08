@@ -65,8 +65,7 @@ ROBOTSTXT_OBEY = False
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   # 'zsy_scrapy.pipelines.ZsyScrapyPipeline': 300,
-   'zsy_scrapy.pipelines.MysqlTiPipeline': 200,
+   'zsy_scrapy.pipelines.MysqlTiPipeline': 200
 }
 
 # Enable aticle configure the AutoThrottle extension (disabled by default)
